@@ -16,8 +16,8 @@ h3::before,
 h4::before,
 h5::before,
 h6::before {
-  -webkit-animation: ccc 4s linear infinite;
-  animation: ccc 4s linear infinite;
+  -webkit-animation: ccc 3s linear infinite;
+  animation: ccc 3s linear infinite;
 }
 /* 控制风车转动方向 -1turn 为逆时针转动，1turn 为顺时针转动，相同数字部分记得统一修改 */
 @-webkit-keyframes ccc {
@@ -26,8 +26,8 @@ h6::before {
     transform: rotate(0deg);
   }
   to {
-    -webkit-transform: rotate(-1turn);
-    transform: rotate(-1turn);
+    -webkit-transform: rotate(1turn);
+    transform: rotate(1turn);
   }
 }
 @keyframes ccc {
@@ -36,8 +36,8 @@ h6::before {
     transform: rotate(0deg);
   }
   to {
-    -webkit-transform: rotate(-1turn);
-    transform: rotate(-1turn);
+    -webkit-transform: rotate(1turn);
+    transform: rotate(1turn);
   }
 }
 /* 设置风车颜色 */
@@ -93,8 +93,8 @@ h6::before {
 #content-inner.layout h5:hover::before,
 #content-inner.layout h6:hover::before {
   color: var(--theme-color);
-  -webkit-animation: ccc 6s linear infinite;
-  animation: ccc 6s linear infinite;
+  -webkit-animation: ccc 4s linear infinite;
+  animation: ccc 4s linear infinite;
 }
 /*=====================================================================================================*/
 /* 鼠标 */
