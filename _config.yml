@@ -5,8 +5,8 @@
 # Site
 title: WhiteGive
 subtitle: ''
-description: 记录 分享 进步
-keywords: C++ 技术 记录
+description: 记录 分享
+keywords: 记录 分享 
 author: WhiteGive
 language: zh-CN
 timezone: Asia/Shanghai
@@ -112,3 +112,42 @@ deploy:
 # 双栏   
 butterfly_article_double_row:
   enable: true
+# 动画
+wowjs:
+  enable: true #控制动画开关。true是打开，false是关闭
+  animate_css: https://npm.elemecdn.com/hexo-butterfly-wowjs/lib/animate.min.css
+  wow_js: https://npm.elemecdn.com/hexo-butterfly-wowjs/lib/wow.min.js
+  wow_init_js: https://npm.elemecdn.com/hexo-butterfly-wowjs/lib/wow_init.js
+  priority: 10 #过滤器优先级
+  mobile: true #移动端是否启用，默认移动端禁用
+  animateitem:
+    - class: recent-post-item #必填项，需要添加动画的元素的class
+      style: animate__zoomIn #必填项，需要添加的动画
+      duration: 1.5s #选填项，动画持续时间，单位可以是ms也可以是s。例如3s，700ms。
+      delay: 0s #选填项，动画开始的延迟时间，单位可以是ms也可以是s。例如3s，700ms。
+      iteration: 1 #选填项，动画重复的次数
+    - class: card-widget
+      style: animate__zoomIn
+      
+# electric_clock
+# see https://anzhiy.cn/posts/fc18.html
+electric_clock:
+  enable: true # 开关
+  priority: 5 #过滤器优先权
+  enable_page: all # 应用页面
+  exclude:
+  # - /posts/
+  # - /about/
+  layout: # 挂载容器类型
+    type: class
+    name: sticky_layout
+    index: 0
+  loading: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/loading.gif #加载动画自定义
+  clock_css: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.css
+  clock_js: https://cdn.cbd.int/hexo-butterfly-clock-anzhiyu/lib/clock.min.js
+  ip_api: https://widget.qweather.net/simple/static/js/he-simple-common.js?v=2.0
+  qweather_key: 2eaaf0ecead74d1781d283f260b805f8 # 和风天气key
+  gaud_map_key: e839ff488c73d158baf078252edcd33a # 高得地图web服务key
+  default_rectangle: false # 开启后将一直显示rectangle位置的天气，否则将获取访问者的地理位置与天气
+  rectangle: 112.982279,28.19409 # 获取访问者位置失败时会显示该位置的天气，同时该位置为开启default_rectangle后的位置
+
