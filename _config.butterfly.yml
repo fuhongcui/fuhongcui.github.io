@@ -8,8 +8,7 @@ menu:
   标签: /tags/ || fas fa-tags
   分类: /categories/ || fas fa-folder-open
   工作||fas fa-list:
-    work: /work/ || fas fa-music
-  #   Movie: /movies/ || fas fa-video
+    一些链接: /work/link/ || fas fa-paper-plane
   # Link: /link/ || fas fa-link
   关于: /about/ || fas fa-heart
 
@@ -579,7 +578,7 @@ activate_power_mode:
 
 # Mouse click effects: fireworks (鼠標點擊效果: 煙火特效)
 fireworks:
-  enable: true
+  enable: false
   zIndex: 9999 # -1 or 9999
   mobile: false
 
@@ -590,11 +589,11 @@ click_heart:
 
 # Mouse click effects: words (鼠標點擊效果: 文字)
 ClickShowText:
-  enable: false
+  enable: true
   text:
-    # - I
-    # - LOVE
-    # - YOU
+    - 嘿
+    - 哈
+    - 呦
   fontSize: 15px
   random: false
   mobile: false
@@ -606,7 +605,7 @@ display_mode: light
 # Beautify (美化頁面顯示)
 beautify:
   enable: true
-  field: post # site/post
+  field: site # site/post
   title-prefix-icon: '\f863' # '\f0c1'
   title-prefix-icon-color:  "#F47466" # '#F47466'
 
