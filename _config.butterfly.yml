@@ -588,7 +588,7 @@ click_heart:
 
 # Mouse click effects: words (鼠標點擊效果: 文字)
 ClickShowText:
-  enable: true
+  enable: false
   text:
     - 哼
     - 哼
@@ -600,7 +600,7 @@ ClickShowText:
 
 # Default display mode (網站默認的顯示模式)
 # light (default) / dark
-display_mode: dark
+display_mode: light
 
 # Beautify (美化頁面顯示)
 beautify:
