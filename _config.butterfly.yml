@@ -7,8 +7,6 @@ menu:
   归档: /archives/ || fas fa-archive
   标签: /tags/ || fas fa-tags
   分类: /categories/ || fas fa-folder-open
-  工作||fas fa-list:
-    一些链接: /work/link/ || fas fa-paper-plane
   # Link: /link/ || fas fa-link
   关于: /about/ || fas fa-heart
 
