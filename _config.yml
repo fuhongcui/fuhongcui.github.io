@@ -108,7 +108,4 @@ deploy:
   type: git
   repo: git@github.com:fuhongcui/fuhongcui.github.io.git
   branch: main
-
-# 双栏   
-butterfly_article_double_row:
-  enable: true
+  
