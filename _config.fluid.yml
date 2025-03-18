@@ -918,7 +918,7 @@ discuss:
 # Archive Page
 #---------------------------
 archive:
-  banner_img: /img/default.png
+  banner_img: /resourse/img/back.jpg
   banner_img_height: 60
   banner_mask_alpha: 0.3
 
@@ -929,7 +929,7 @@ archive:
 #---------------------------
 category:
   enable: true
-  banner_img: /img/default.png
+  banner_img: /resourse/img/back.jpg
   banner_img_height: 60
   banner_mask_alpha: 0.3
 
@@ -958,7 +958,7 @@ category:
 #---------------------------
 tag:
   enable: true
-  banner_img: /img/default.png
+  banner_img: /resourse/img/back.jpg
   banner_img_height: 80
   banner_mask_alpha: 0.3
   tagcloud:
@@ -996,7 +996,7 @@ about:
 # Custom Page through `hexo new page`
 #---------------------------
 page:
-  banner_img: /img/default.png
+  banner_img: /resourse/img/back.jpg
   banner_img_height: 60
   banner_mask_alpha: 0.3
 
@@ -1007,7 +1007,7 @@ page:
 #---------------------------
 page404:
   enable: true
-  banner_img: /img/default.png
+  banner_img: /resourse/img/back.jpg
   banner_img_height: 85
   banner_mask_alpha: 0.3
   # 重定向到首页的延迟(毫秒)
