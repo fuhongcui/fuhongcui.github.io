@@ -1,9 +1,12 @@
 ---
 title: perf采样火焰图
 abbrlink: c7467172
-date: 2025-03-18 15:51:45
 tags: linux perfermance
 excerpt: linux perf 采样
+categories:
+  - linux
+  - performance
+date: 2025-03-18 15:51:45
 ---
 ### 火焰图
 ```bash
