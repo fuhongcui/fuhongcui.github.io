@@ -4,8 +4,8 @@ abbrlink: c7467172
 tags: linux perfermance
 excerpt: linux perf 采样
 categories:
-  - linux
-  - performance
+  - Linux
+  - 性能
 date: 2025-03-18 15:51:45
 ---
 ### 火焰图

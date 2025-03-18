@@ -2,8 +2,8 @@
 title: Linux下 Beyond Compare 的无限试用
 tags: Beyond Compare
 categories:
-  - linux
-  - software
+  - Linux
+  - 软件
 abbrlink: 3f451d7a
 excerpt: Beyond Compare 激活
 date: 2024-08-20 19:21:48
