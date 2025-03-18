@@ -11,6 +11,14 @@
     <content type="html"><![CDATA[<h3 id="火焰图"><a href="#火焰图" class="headerlink" title="火焰图"></a>火焰图</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">perf record -e cpu-clock -g -p `pidof xxx`<br>perf script -i perf.data &amp;&gt; perf.unfold<br>/mnt/sda1/software/Perf/FlameGraph/stackcollapse-perf.pl perf.unfold &amp;&gt; perf.folded<br>/mnt/sda1/software/Perf/FlameGraph/flamegraph.pl perf.folded &gt; perf.svg<br></code></pre></td></tr></table></figure>]]></content>
     
     
+    <categories>
+      
+      <category>linux</category>
+      
+      <category>performance</category>
+      
+    </categories>
+    
     
     <tags>
       
@@ -32,7 +40,9 @@
     
     <categories>
       
-      <category>Linux软件</category>
+      <category>linux</category>
+      
+      <category>software</category>
       
     </categories>
     
@@ -42,19 +52,6 @@
       <tag>Beyond Compare</tag>
       
     </tags>
-    
-  </entry>
-  
-  
-  
-  <entry>
-    <title>开篇</title>
-    <link href="/posts/bf28cd64/"/>
-    <url>/posts/bf28cd64/</url>
-    
-    <content type="html"><![CDATA[<p>待续。。。</p>]]></content>
-    
-    
     
   </entry>
   
