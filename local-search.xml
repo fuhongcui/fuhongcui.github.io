@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+  
+  <entry>
+    <title>perf采样火焰图</title>
+    <link href="/posts/c7467172/"/>
+    <url>/posts/c7467172/</url>
+    
+    <content type="html"><![CDATA[<h3 id="火焰图"><a href="#火焰图" class="headerlink" title="火焰图"></a>火焰图</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">perf record -e cpu-clock -g -p `pidof xxx`<br>perf script -i perf.data &amp;&gt; perf.unfold<br>/mnt/sda1/software/Perf/FlameGraph/stackcollapse-perf.pl perf.unfold &amp;&gt; perf.folded<br>/mnt/sda1/software/Perf/FlameGraph/flamegraph.pl perf.folded &gt; perf.svg<br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    
+    <tags>
+      
+      <tag>linux perfermance</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>Linux下 Beyond Compare 的无限试用</title>
+    <link href="/posts/3f451d7a/"/>
+    <url>/posts/3f451d7a/</url>
+    
+    <content type="html"><![CDATA[<p>Linux下 通过删除相关配置文件，可以实现Beyond Compare无限试用。</p><h4 id="删除配置文件"><a href="#删除配置文件" class="headerlink" title="删除配置文件"></a>删除配置文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">rm</span> -rf ~/.config/bcompare/<br></code></pre></td></tr></table></figure><h4 id="二进制文件处理"><a href="#二进制文件处理" class="headerlink" title="二进制文件处理"></a>二进制文件处理</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash"><span class="hljs-built_in">cd</span> /usr/lib/beyondcompare/<br></code></pre></td></tr></table></figure><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">sudo sed -i <span class="hljs-string">&quot;s/keexjEP3t4Mue23hrnuPtY4TdcsqNiJL-5174TsUdLmJSIXKfG2NGPwBL6vnRPddT7tH29qpkneX63DO9ECSPE9rzY1zhThHERg8lHM9IBFT+rVuiY823aQJuqzxCKIE1bcDqM4wgW01FH6oCBP1G4ub01xmb4BGSUG6ZrjxWHJyNLyIlGvOhoY2HAYzEtzYGwxFZn2JZ66o4RONkXjX0DF9EzsdUef3UAS+JQ+fCYReLawdjEe6tXCv88GKaaPKWxCeaUL9PejICQgRQOLGOZtZQkLgAelrOtehxz5ANOOqCaJgy2mJLQVLM5SJ9Dli909c5ybvEhVmIC0dc9dWH+/N9KmiLVlKMU7RJqnE+WXEEPI1SgglmfmLc1yVH7dqBb9ehOoKG9UE+HAE1YvH1XX2XVGeEqYUY-Tsk7YBTz0WpSpoYyPgx6Iki5KLtQ5G-aKP9eysnkuOAkrvHU8bLbGtZteGwJarev03PhfCioJL4OSqsmQGEvDbHFEbNl1qJtdwEriR+VNZts9vNNLk7UGfeNwIiqpxjk4Mn09nmSd8FhM4ifvcaIbNCRoMPGl6KU12iseSe+w+1kFsLhX+OhQM8WXcWV10cGqBzQE9OqOLUcg9n0krrR3KrohstS9smTwEx9olyLYppvC0p5i7dAx2deWvM1ZxKNs0BvcXGukR+/g&quot;</span> BCompare<br></code></pre></td></tr></table></figure><h4 id="重新激活"><a href="#重新激活" class="headerlink" title="重新激活"></a>重新激活</h4><p>打开Beyond Compare， 提示需要激活， 使用下面的license激活<br><blockquote><p>—- BEGIN LICENSE KEY —-<br>GXN1eh9FbDiX1ACdd7XKMV7hL7x0ClBJLUJ-zFfKofjaj2yxE53xauIfkqZ8FoLpcZ0Ux6McTyNmODDSvSIHLYhg1QkTxjCeSCk6ARz0ABJcnUmd3dZYJNWFyJun14rmGByRnVPL49QH+Rs0kjRGKCB-cb8IT4Gf0Ue9WMQ1A6t31MO9jmjoYUeoUmbeAQSofvuK8GN1rLRv7WXfUJ0uyvYlGLqzq1ZoJAJDyo0Kdr4ThF-IXcv2cxVyWVW1SaMq8GFosDEGThnY7C-SgNXW30jqAOgiRjKKRX9RuNeDMFqgP2cuf0NMvyMrMScnM1ZyiAaJJtzbxqN5hZOMClUTE+++<br>—- END LICENSE KEY ——-</p></blockquote></p>]]></content>
+    
+    
+    <categories>
+      
+      <category>Linux软件</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>Beyond Compare</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>开篇</title>
+    <link href="/posts/bf28cd64/"/>
+    <url>/posts/bf28cd64/</url>
+    
+    <content type="html"><![CDATA[<p>待续。。。</p>]]></content>
+    
+    
+    
+  </entry>
+  
+  
+  
+  
+</search>
