@@ -1,0 +1,927 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="WhiteGive">
+  <meta name="keywords" content="记录 分享">
+  
+    <meta name="description" content="MapLibre GL JS 完整坐标变换流程详解本文档详细解释了 MapLibre GL JS 中，从原始经纬度数据到最终屏幕像素位置的完整变换流程。 场景设定1234567891011要显示的点：故宫 (116.397°E, 39.916°N)地图中心：天安门 (116.4°E, 39.9°N)缩放级别：zoom &#x3D; 10.3 (小数！)倾斜角度：pitch &#x3D; 45°旋转角度：bearing">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MapLibre GL JS 完整坐标变换流程详解">
+<meta property="og:url" content="https://fuhongcui.github.io/posts/722913b1/">
+<meta property="og:site_name" content="WhiteGive">
+<meta property="og:description" content="MapLibre GL JS 完整坐标变换流程详解本文档详细解释了 MapLibre GL JS 中，从原始经纬度数据到最终屏幕像素位置的完整变换流程。 场景设定1234567891011要显示的点：故宫 (116.397°E, 39.916°N)地图中心：天安门 (116.4°E, 39.9°N)缩放级别：zoom &#x3D; 10.3 (小数！)倾斜角度：pitch &#x3D; 45°旋转角度：bearing">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-12-08T07:07:27.315Z">
+<meta property="article:modified_time" content="2025-12-08T07:12:34.472Z">
+<meta property="article:author" content="WhiteGive">
+<meta property="article:tag" content="地图">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>MapLibre GL JS 完整坐标变换流程详解 - WhiteGive</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"fuhongcui.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>WhiteGive</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/resourse/img/back.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MapLibre GL JS 完整坐标变换流程详解"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-12-08 15:07" pubdate>
+          2025年12月8日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          21 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">MapLibre GL JS 完整坐标变换流程详解</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h1 id="MapLibre-GL-JS-完整坐标变换流程详解"><a href="#MapLibre-GL-JS-完整坐标变换流程详解" class="headerlink" title="MapLibre GL JS 完整坐标变换流程详解"></a>MapLibre GL JS 完整坐标变换流程详解</h1><p>本文档详细解释了 MapLibre GL JS 中，从原始经纬度数据到最终屏幕像素位置的完整变换流程。</p>
+<h2 id="场景设定"><a href="#场景设定" class="headerlink" title="场景设定"></a>场景设定</h2><figure class="highlight mathematica"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs mathematica">要显示的点：故宫 <span class="hljs-punctuation">(</span><span class="hljs-number">116.397</span>°<span class="hljs-built_in">E</span><span class="hljs-operator">,</span> <span class="hljs-number">39.916</span>°<span class="hljs-built_in">N</span><span class="hljs-punctuation">)</span><br>地图中心：天安门 <span class="hljs-punctuation">(</span><span class="hljs-number">116.4</span>°<span class="hljs-built_in">E</span><span class="hljs-operator">,</span> <span class="hljs-number">39.9</span>°<span class="hljs-built_in">N</span><span class="hljs-punctuation">)</span><br>缩放级别：<span class="hljs-variable">zoom</span> <span class="hljs-operator">=</span> <span class="hljs-number">10.3</span> <span class="hljs-punctuation">(</span>小数！<span class="hljs-punctuation">)</span><br>倾斜角度：<span class="hljs-variable">pitch</span> <span class="hljs-operator">=</span> <span class="hljs-number">45</span>°<br>旋转角度：<span class="hljs-variable">bearing</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>°<br>屏幕尺寸：<span class="hljs-number">1024</span> × <span class="hljs-number">768</span> 逻辑像素<br>设备像素比：<span class="hljs-variable">devicePixelRatio</span> <span class="hljs-operator">=</span> <span class="hljs-number">2.0</span> <span class="hljs-punctuation">(</span><span class="hljs-variable">Retina</span>屏幕<span class="hljs-punctuation">)</span><br><br>常量：<br>• <span class="hljs-variable">tileSize</span> <span class="hljs-operator">=</span> <span class="hljs-number">512</span> <span class="hljs-punctuation">(</span>逻辑像素，<span class="hljs-variable">zoom</span><span class="hljs-operator">=</span><span class="hljs-number">0</span>时世界大小<span class="hljs-punctuation">)</span><br>• <span class="hljs-variable">EXTENT</span> <span class="hljs-operator">=</span> <span class="hljs-number">8192</span> <span class="hljs-punctuation">(</span>瓦片内坐标范围<span class="hljs-punctuation">)</span><br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="第1步：经纬度-→-Mercator坐标-0-1"><a href="#第1步：经纬度-→-Mercator坐标-0-1" class="headerlink" title="第1步：经纬度 → Mercator坐标 [0, 1]"></a>第1步：经纬度 → Mercator坐标 [0, 1]</h2><h3 id="为什么需要这一步？"><a href="#为什么需要这一步？" class="headerlink" title="为什么需要这一步？"></a>为什么需要这一步？</h3><ul>
+<li>经纬度是球面坐标，不能直接用于平面显示</li>
+<li>Mercator投影将球面”展开”成平面</li>
+<li>结果范围 [0,1]×[0,1] 表示整个地球</li>
+</ul>
+<h3 id="X方向（经度）——-简单线性映射"><a href="#X方向（经度）——-简单线性映射" class="headerlink" title="X方向（经度）—— 简单线性映射"></a>X方向（经度）—— 简单线性映射</h3><figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dns">mercatorX = (<span class="hljs-number">180</span> + 经度) / <span class="hljs-number">360</span><br>          = (<span class="hljs-number">180</span> + <span class="hljs-number">116.397</span>) / <span class="hljs-number">360</span><br>          = <span class="hljs-number">296.397</span> / <span class="hljs-number">360</span><br>          = <span class="hljs-number">0.82332</span><br></code></pre></td></tr></table></figure>
+<h3 id="Y方向（纬度）——-非线性映射（保持角度不变形）"><a href="#Y方向（纬度）——-非线性映射（保持角度不变形）" class="headerlink" title="Y方向（纬度）—— 非线性映射（保持角度不变形）"></a>Y方向（纬度）—— 非线性映射（保持角度不变形）</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs awk">mercatorY = (<span class="hljs-number">180</span> - <span class="hljs-number">180</span><span class="hljs-regexp">/π × ln(tan(π/</span><span class="hljs-number">4</span> + lat×π<span class="hljs-regexp">/360))) /</span> <span class="hljs-number">360</span><br><br>计算步骤：<br>① angle = π<span class="hljs-regexp">/4 + 39.916 × π/</span><span class="hljs-number">360</span> = <span class="hljs-number">1.134</span> 弧度<br>② tan(<span class="hljs-number">1.134</span>) = <span class="hljs-number">2.20</span><br>③ ln(<span class="hljs-number">2.20</span>) = <span class="hljs-number">0.788</span><br>④ <span class="hljs-number">0.788</span> × <span class="hljs-number">180</span>/π = <span class="hljs-number">45.16</span>°<br>⑤ (<span class="hljs-number">180</span> - <span class="hljs-number">45.16</span>) / <span class="hljs-number">360</span> = <span class="hljs-number">0.3746</span><br><br>mercatorY ≈ <span class="hljs-number">0.3746</span><br></code></pre></td></tr></table></figure>
+<h3 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h3><ul>
+<li>故宫的 Mercator 坐标：<strong>(0.82332, 0.3746)</strong></li>
+<li>天安门的 Mercator 坐标：<strong>(0.8233, 0.3750)</strong></li>
+</ul>
+<h3 id="图示-0-1-×-0-1-范围"><a href="#图示-0-1-×-0-1-范围" class="headerlink" title="图示 [0,1]×[0,1] 范围"></a>图示 [0,1]×[0,1] 范围</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs tap">    <span class="hljs-number"> 0 </span>        0.5       0.82332    1<br>     ├──────────┼──────────┼────────┤<br> <span class="hljs-number"> 0 </span> │          │          │        │<br>     │          │          │        │<br>0.37 │          │        ·故宫      │<br>0.38 │          │        ·天安门    │<br>     │          │                   │<br> 0.5 │          ├──赤道─────────────│<br>     │          │                   │<br> <span class="hljs-number"> 1 </span> └──────────┴───────────────────┘<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="第2步：确定瓦片层级和世界大小"><a href="#第2步：确定瓦片层级和世界大小" class="headerlink" title="第2步：确定瓦片层级和世界大小"></a>第2步：确定瓦片层级和世界大小</h2><h3 id="zoom-与-tileZ-的关系"><a href="#zoom-与-tileZ-的关系" class="headerlink" title="zoom 与 tileZ 的关系"></a>zoom 与 tileZ 的关系</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">zoom</span> <span class="hljs-operator">=</span> <span class="hljs-number">10.3</span> (用户设置的缩放级别，可以是小数)<br><span class="hljs-attribute">tileZ</span> <span class="hljs-operator">=</span> floor(zoom) <span class="hljs-operator">=</span> floor(<span class="hljs-number">10.3</span>) <span class="hljs-operator">=</span> <span class="hljs-number">10</span> (瓦片层级，整数)<br></code></pre></td></tr></table></figure>
+<p><strong>为什么分开？</strong></p>
+<ul>
+<li>zoom 支持平滑缩放（用户体验）</li>
+<li>tileZ 必须是整数（瓦片服务器只有整数层级的瓦片）</li>
+</ul>
+<h3 id="worldSize-的计算（使用小数-zoom！）"><a href="#worldSize-的计算（使用小数-zoom！）" class="headerlink" title="worldSize 的计算（使用小数 zoom！）"></a>worldSize 的计算（使用小数 zoom！）</h3><figure class="highlight parser3"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs parser3"><span class="language-xml">worldSize = tileSize × </span><span class="hljs-number">2</span><span class="hljs-keyword">^zoom</span><span class="language-xml"></span><br><span class="language-xml">          = </span><span class="hljs-number">512</span><span class="language-xml"> × </span><span class="hljs-number">2</span><span class="hljs-keyword">^10.3</span><span class="language-xml"></span><br><span class="language-xml">          = </span><span class="hljs-number">512</span><span class="language-xml"> × </span><span class="hljs-number">1261.9</span><span class="language-xml"></span><br><span class="language-xml">          = </span><span class="hljs-number">646</span><span class="language-xml">,</span><span class="hljs-number">092</span><span class="language-xml"> 逻辑像素</span><br></code></pre></td></tr></table></figure>
+<p>对比整数 zoom 的情况：</p>
+<ul>
+<li>zoom=10: worldSize = 512 × 1024 = 524,288</li>
+<li>zoom=11: worldSize = 512 × 2048 = 1,048,576</li>
+<li>zoom=10.3: worldSize = 646,092 (在两者之间)</li>
+</ul>
+<h3 id="关于-tileSize-512"><a href="#关于-tileSize-512" class="headerlink" title="关于 tileSize = 512"></a>关于 tileSize = 512</h3><ul>
+<li>这是”逻辑像素”，不是物理像素</li>
+<li>在 Retina 屏幕(DPR=2)上，实际渲染 1024 物理像素</li>
+<li>它是 zoom=0 时整个地球的逻辑像素大小</li>
+<li>也是计算 worldSize 的基准单位</li>
+</ul>
+<hr>
+<h2 id="第3步：Mercator坐标-→-世界坐标"><a href="#第3步：Mercator坐标-→-世界坐标" class="headerlink" title="第3步：Mercator坐标 → 世界坐标"></a>第3步：Mercator坐标 → 世界坐标</h2><h3 id="公式"><a href="#公式" class="headerlink" title="公式"></a>公式</h3><figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf"><span class="hljs-attribute">worldPos</span> <span class="hljs-operator">=</span> mercatorPos × worldSize<br></code></pre></td></tr></table></figure>
+<h3 id="故宫的世界坐标"><a href="#故宫的世界坐标" class="headerlink" title="故宫的世界坐标"></a>故宫的世界坐标</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">worldX</span> = <span class="hljs-number">0</span>.<span class="hljs-number">82332</span> × <span class="hljs-number">646</span>,<span class="hljs-number">092</span> = <span class="hljs-number">531</span>,<span class="hljs-number">928</span><br><span class="hljs-attribute">worldY</span> = <span class="hljs-number">0</span>.<span class="hljs-number">3746</span> × <span class="hljs-number">646</span>,<span class="hljs-number">092</span> = <span class="hljs-number">242</span>,<span class="hljs-number">026</span><br></code></pre></td></tr></table></figure>
+<h3 id="天安门（地图中心）的世界坐标"><a href="#天安门（地图中心）的世界坐标" class="headerlink" title="天安门（地图中心）的世界坐标"></a>天安门（地图中心）的世界坐标</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">centerWorldX</span> = <span class="hljs-number">0</span>.<span class="hljs-number">8233</span> × <span class="hljs-number">646</span>,<span class="hljs-number">092</span> = <span class="hljs-number">531</span>,<span class="hljs-number">863</span><br><span class="hljs-attribute">centerWorldY</span> = <span class="hljs-number">0</span>.<span class="hljs-number">3750</span> × <span class="hljs-number">646</span>,<span class="hljs-number">092</span> = <span class="hljs-number">242</span>,<span class="hljs-number">285</span><br></code></pre></td></tr></table></figure>
+<h3 id="故宫相对于天安门的偏移"><a href="#故宫相对于天安门的偏移" class="headerlink" title="故宫相对于天安门的偏移"></a>故宫相对于天安门的偏移</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">deltaX</span> = <span class="hljs-number">531</span>,<span class="hljs-number">928</span> - <span class="hljs-number">531</span>,<span class="hljs-number">863</span> = +<span class="hljs-number">65</span> 逻辑像素 (偏东)<br><span class="hljs-attribute">deltaY</span> = <span class="hljs-number">242</span>,<span class="hljs-number">026</span> - <span class="hljs-number">242</span>,<span class="hljs-number">285</span> = -<span class="hljs-number">259</span> 逻辑像素 (偏北)<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>⚠️ 注意：这是”世界坐标”中的像素差，不是最终屏幕上的像素差！（透视投影会改变这个值）</p>
+</blockquote>
+<hr>
+<h2 id="第4步：确定瓦片坐标-amp-瓦片内坐标"><a href="#第4步：确定瓦片坐标-amp-瓦片内坐标" class="headerlink" title="第4步：确定瓦片坐标 &amp; 瓦片内坐标"></a>第4步：确定瓦片坐标 &amp; 瓦片内坐标</h2><h3 id="瓦片定位"><a href="#瓦片定位" class="headerlink" title="瓦片定位"></a>瓦片定位</h3><p>tileZ = 10 时，世界被分成 2^10 × 2^10 = 1024 × 1024 个瓦片</p>
+<figure class="highlight isbl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs isbl">故宫所在的瓦片：<br><span class="hljs-variable">tileX</span> = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-variable">mercatorX</span> × <span class="hljs-number">2</span>^<span class="hljs-variable">tileZ</span>)</span><br>      = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-number">0.82332</span> × <span class="hljs-number">1024</span>)</span><br>      = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-number">843.08</span>)</span><br>      = <span class="hljs-number">843</span><br><br><span class="hljs-variable">tileY</span> = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-variable">mercatorY</span> × <span class="hljs-number">2</span>^<span class="hljs-variable">tileZ</span>)</span><br>      = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-number">0.3746</span> × <span class="hljs-number">1024</span>)</span><br>      = <span class="hljs-function"><span class="hljs-title">floor</span>(<span class="hljs-number">383.6</span>)</span><br>      = <span class="hljs-number">383</span><br></code></pre></td></tr></table></figure>
+<p>故宫在瓦片 <strong>(z=10, x=843, y=383)</strong> 中</p>
+<h3 id="瓦片内的相对位置-0-1"><a href="#瓦片内的相对位置-0-1" class="headerlink" title="瓦片内的相对位置 [0, 1]"></a>瓦片内的相对位置 [0, 1]</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">relativeX</span> = <span class="hljs-number">0</span>.<span class="hljs-number">82332</span> × <span class="hljs-number">1024</span> - <span class="hljs-number">843</span> = <span class="hljs-number">0</span>.<span class="hljs-number">08</span><br><span class="hljs-attribute">relativeY</span> = <span class="hljs-number">0</span>.<span class="hljs-number">3746</span> × <span class="hljs-number">1024</span> - <span class="hljs-number">383</span> = <span class="hljs-number">0</span>.<span class="hljs-number">59</span><br></code></pre></td></tr></table></figure>
+<h3 id="转换到-EXTENT-8192-范围（存储在顶点缓冲区）"><a href="#转换到-EXTENT-8192-范围（存储在顶点缓冲区）" class="headerlink" title="转换到 EXTENT=8192 范围（存储在顶点缓冲区）"></a>转换到 EXTENT=8192 范围（存储在顶点缓冲区）</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">tileLocalX</span> = <span class="hljs-number">0</span>.<span class="hljs-number">08</span> × <span class="hljs-number">8192</span> = <span class="hljs-number">655</span><br><span class="hljs-attribute">tileLocalY</span> = <span class="hljs-number">0</span>.<span class="hljs-number">59</span> × <span class="hljs-number">8192</span> = <span class="hljs-number">4833</span><br></code></pre></td></tr></table></figure>
+<p>瓦片内坐标：<strong>(655, 4833)</strong>  范围 [0, 8192]</p>
+<p>这个坐标以 Int16 格式存储在 GPU 顶点缓冲区中。</p>
+<h3 id="瓦片内坐标系图示"><a href="#瓦片内坐标系图示" class="headerlink" title="瓦片内坐标系图示"></a>瓦片内坐标系图示</h3><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs gcode">     <span class="hljs-number">0</span> ──────────────────────────→ <span class="hljs-number">8192</span> <span class="hljs-comment">(X)</span><br>     ┌──────────────────────────────┐<br>   <span class="hljs-number">0</span> │                              │<br>     │                              │<br>     │         ·<span class="hljs-comment">(655, 4833)</span>         │<br>     │           故宫               │<br>     │                              │<br><span class="hljs-number">8192</span> └──────────────────────────────┘<br>     ↓ <span class="hljs-comment">(Y)</span><br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="第5步：TileMatrix（瓦片坐标-→-世界坐标）"><a href="#第5步：TileMatrix（瓦片坐标-→-世界坐标）" class="headerlink" title="第5步：TileMatrix（瓦片坐标 → 世界坐标）"></a>第5步：TileMatrix（瓦片坐标 → 世界坐标）</h2><h3 id="每个瓦片在世界坐标中的大小"><a href="#每个瓦片在世界坐标中的大小" class="headerlink" title="每个瓦片在世界坐标中的大小"></a>每个瓦片在世界坐标中的大小</h3><figure class="highlight cos"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs cos">tileWorldSize = worldSize / <span class="hljs-number">2</span><span class="hljs-symbol">^tileZ</span><br>              = <span class="hljs-number">646</span>,<span class="hljs-number">092</span> / <span class="hljs-number">1024</span><br>              = <span class="hljs-number">631</span> 逻辑像素<br></code></pre></td></tr></table></figure>
+<blockquote>
+<p>⚠️ 注意：因为 zoom=10.3 &gt; tileZ=10，每个瓦片显示为 631px，而不是标准的 512px。这就是小数 zoom 的效果——瓦片被放大显示。</p>
+</blockquote>
+<h3 id="TileMatrix-的构造"><a href="#TileMatrix-的构造" class="headerlink" title="TileMatrix 的构造"></a>TileMatrix 的构造</h3><figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs dns">TileMatrix = Translate(<span class="hljs-number">843</span> × <span class="hljs-number">631</span>, <span class="hljs-number">383</span> × <span class="hljs-number">631</span>, <span class="hljs-number">0</span>)<br>           × Scale(<span class="hljs-number">631/8192</span>, <span class="hljs-number">631/8192</span>, <span class="hljs-number">1</span>)<br><br>           = Translate(<span class="hljs-number">531,833</span>, <span class="hljs-number">241,673</span>, <span class="hljs-number">0</span>)<br>           × Scale(<span class="hljs-number">0</span>.<span class="hljs-number">077</span>, <span class="hljs-number">0</span>.<span class="hljs-number">077</span>, <span class="hljs-number">1</span>)<br></code></pre></td></tr></table></figure>
+<h3 id="变换计算"><a href="#变换计算" class="headerlink" title="变换计算"></a>变换计算</h3><figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs dns">输入: tileLocal = (<span class="hljs-number">655</span>, <span class="hljs-number">4833</span>)<br><br>① 缩放: (<span class="hljs-number">655</span> × <span class="hljs-number">0</span>.<span class="hljs-number">077</span>, <span class="hljs-number">4833</span> × <span class="hljs-number">0</span>.<span class="hljs-number">077</span>)<br>      = (<span class="hljs-number">50</span>.<span class="hljs-number">4</span>, <span class="hljs-number">372</span>.<span class="hljs-number">1</span>)<br><br>② 平移: (<span class="hljs-number">50</span>.<span class="hljs-number">4</span> + <span class="hljs-number">531,833</span>, <span class="hljs-number">372</span>.<span class="hljs-number">1</span> + <span class="hljs-number">241,673</span>)<br>      = (<span class="hljs-number">531,883</span>, <span class="hljs-number">242,045</span>)<br><br>世界坐标: (<span class="hljs-number">531,883</span>, <span class="hljs-number">242,045</span>)<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="第6步：ViewProjMatrix（世界坐标-→-裁剪空间）——-透视投影！"><a href="#第6步：ViewProjMatrix（世界坐标-→-裁剪空间）——-透视投影！" class="headerlink" title="第6步：ViewProjMatrix（世界坐标 → 裁剪空间）—— 透视投影！"></a>第6步：ViewProjMatrix（世界坐标 → 裁剪空间）—— 透视投影！</h2><p>这是最复杂的一步，包含：</p>
+<ul>
+<li>平移到地图中心</li>
+<li>旋转（bearing, pitch, roll）</li>
+<li>相机后退</li>
+<li>透视投影</li>
+</ul>
+<h3 id="pitch-45°-时的相机位置"><a href="#pitch-45°-时的相机位置" class="headerlink" title="pitch = 45° 时的相机位置"></a>pitch = 45° 时的相机位置</h3><figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs livescript">      📷 相机<br>        <span class="hljs-string">\</span><br>         <span class="hljs-string">\</span> <span class="hljs-number">45</span>°<br>          <span class="hljs-string">\</span><br>           ▼<br>────────────────────── 地图平面<br>         ·天安门(中心)<br></code></pre></td></tr></table></figure>
+<h3 id="ViewProjMatrix-的构建顺序"><a href="#ViewProjMatrix-的构建顺序" class="headerlink" title="ViewProjMatrix 的构建顺序"></a>ViewProjMatrix 的构建顺序</h3><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs reasonml">M = <span class="hljs-constructor">Perspective(<span class="hljs-params">fov</span>=36.87°, <span class="hljs-params">aspect</span>, <span class="hljs-params">near</span>, <span class="hljs-params">far</span>)</span><br>  × <span class="hljs-constructor">Scale(1, -1, 1)</span>           <span class="hljs-comment">// Y轴翻转</span><br>  × <span class="hljs-constructor">Translate(0, 0, -<span class="hljs-params">cameraDist</span>)</span> <span class="hljs-comment">// 相机后退</span><br>  × <span class="hljs-constructor">RotateX(45°)</span>              <span class="hljs-comment">// pitch倾斜</span><br>  × <span class="hljs-constructor">Translate(-<span class="hljs-params">centerX</span>, -<span class="hljs-params">centerY</span>, 0)</span> <span class="hljs-comment">// 移到中心</span><br></code></pre></td></tr></table></figure>
+<h3 id="相机到中心的距离（逻辑像素）"><a href="#相机到中心的距离（逻辑像素）" class="headerlink" title="相机到中心的距离（逻辑像素）"></a>相机到中心的距离（逻辑像素）</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs awk">cameraToCenterDistance = height <span class="hljs-regexp">/ 2 /</span> tan(fov/<span class="hljs-number">2</span>)<br>                       = <span class="hljs-number">768</span> <span class="hljs-regexp">/ 2 /</span> tan(<span class="hljs-number">18.43</span>°)<br>                       = <span class="hljs-number">384</span> / <span class="hljs-number">0.333</span><br>                       = <span class="hljs-number">1</span>,<span class="hljs-number">152</span> 逻辑像素<br></code></pre></td></tr></table></figure>
+<h3 id="故宫的透视变换计算"><a href="#故宫的透视变换计算" class="headerlink" title="故宫的透视变换计算"></a>故宫的透视变换计算</h3><p><strong>输入：</strong></p>
+<ul>
+<li>故宫世界坐标 = (531,883, 242,045, 0)</li>
+<li>天安门(中心) = (531,863, 242,285, 0)</li>
+</ul>
+<p><strong>① 相对于中心的位置：</strong></p>
+<figure class="highlight dns"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs dns">relativePos = (<span class="hljs-number">531,883</span> - <span class="hljs-number">531,863</span>, <span class="hljs-number">242,045</span> - <span class="hljs-number">242,285</span>)<br>            = (<span class="hljs-number">20</span>, -<span class="hljs-number">240</span>, <span class="hljs-number">0</span>)<br><br>故宫在天安门的：东边<span class="hljs-number">20</span>像素，北边<span class="hljs-number">240</span>像素<br></code></pre></td></tr></table></figure>
+<p><strong>② 应用 pitch=45° 旋转（绕X轴）：</strong></p>
+<figure class="highlight subunit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs subunit">旋转后的Y和Z会混合<br><br>y&#x27; = y × cos(45°) - z × sin(45°)<br>   = <span class="hljs-string">-240</span> × 0.707 - 0 × 0.707<br>   = <span class="hljs-string">-170</span><br><br>z&#x27; = y × sin(45°) + z × cos(45°)<br>   = <span class="hljs-string">-240</span> × 0.707 + 0 × 0.707<br>   = <span class="hljs-string">-170</span><br><br>旋转后: (20, <span class="hljs-string">-170</span>, <span class="hljs-string">-170</span>)<br></code></pre></td></tr></table></figure>
+<p><strong>③ 相机后退：</strong></p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs 1c">z&#x27;&#x27; = z&#x27; - cameraDist<br>    = -170 - <span class="hljs-number">1152</span><br>    = -<span class="hljs-number">1322</span><br><br>相机空间: (20, -170, -<span class="hljs-number">1322</span>)<br></code></pre></td></tr></table></figure>
+<p><strong>④ 透视投影（关键！）：</strong></p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs 1c">透视投影后，w 分量不再是 <span class="hljs-number">1</span>！<br><br>w = -z&#x27;&#x27; × 某系数 ≈ <span class="hljs-number">1322</span> × 某系数<br><br>这个 w 值决定了透视缩放程度<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="第7步：透视除法-amp-屏幕坐标"><a href="#第7步：透视除法-amp-屏幕坐标" class="headerlink" title="第7步：透视除法 &amp; 屏幕坐标"></a>第7步：透视除法 &amp; 屏幕坐标</h2><h3 id="⭐-这是透视效果的关键步骤！"><a href="#⭐-这是透视效果的关键步骤！" class="headerlink" title="⭐ 这是透视效果的关键步骤！"></a>⭐ 这是透视效果的关键步骤！</h3><figure class="highlight sml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sml">clipPos = (x&#x27;, y&#x27;, z&#x27;, w&#x27;)<br>ndcPos = (x&#x27;/w&#x27;, y&#x27;/w&#x27;, z&#x27;/w&#x27;)<br></code></pre></td></tr></table></figure>
+<h3 id="近大远小的原理"><a href="#近大远小的原理" class="headerlink" title="近大远小的原理"></a>近大远小的原理</h3><ul>
+<li>w 与距离成正比</li>
+<li>除以 w 后，远处的点被”缩小”</li>
+<li>近处的点被相对”放大”</li>
+</ul>
+<h3 id="视口变换（NDC-→-屏幕像素）"><a href="#视口变换（NDC-→-屏幕像素）" class="headerlink" title="视口变换（NDC → 屏幕像素）"></a>视口变换（NDC → 屏幕像素）</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">screenX</span> = (ndcX + <span class="hljs-number">1</span>) × <span class="hljs-number">0</span>.<span class="hljs-number">5</span> × screenWidth<br><span class="hljs-attribute">screenY</span> = (ndcY + <span class="hljs-number">1</span>) × <span class="hljs-number">0</span>.<span class="hljs-number">5</span> × screenHeight<br></code></pre></td></tr></table></figure>
+<p>故宫的最终屏幕位置（逻辑像素）：假设计算结果为 <strong>screenPos = (527, 340)</strong></p>
+<blockquote>
+<p>⚠️ 这个位置考虑了：</p>
+<ul>
+<li>透视缩放（pitch=45°带来的近大远小）</li>
+<li>故宫在天安门北边，所以在屏幕上方</li>
+<li>屏幕上方是”远处”，所以实际偏移比世界坐标差值小</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="第8步：逻辑像素-→-物理像素"><a href="#第8步：逻辑像素-→-物理像素" class="headerlink" title="第8步：逻辑像素 → 物理像素"></a>第8步：逻辑像素 → 物理像素</h2><h3 id="devicePixelRatio-2-0-Retina屏幕"><a href="#devicePixelRatio-2-0-Retina屏幕" class="headerlink" title="devicePixelRatio = 2.0 (Retina屏幕)"></a>devicePixelRatio = 2.0 (Retina屏幕)</h3><figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs makefile">物理像素 = 逻辑像素 × devicePixelRatio<br><br><span class="hljs-section">故宫屏幕位置:</span><br><span class="hljs-section">逻辑像素: (527, 340)</span><br><span class="hljs-section">物理像素: (1054, 680)</span><br></code></pre></td></tr></table></figure>
+<h3 id="Canvas-设置"><a href="#Canvas-设置" class="headerlink" title="Canvas 设置"></a>Canvas 设置</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-selector-tag">canvas</span><span class="hljs-selector-class">.width</span> = <span class="hljs-number">1024</span> × <span class="hljs-number">2</span> = <span class="hljs-number">2048</span> 物理像素<br><span class="hljs-selector-tag">canvas</span><span class="hljs-selector-class">.height</span> = <span class="hljs-number">768</span> × <span class="hljs-number">2</span> = <span class="hljs-number">1536</span> 物理像素<br><span class="hljs-selector-tag">canvas</span><span class="hljs-selector-class">.style</span><span class="hljs-selector-class">.width</span> = <span class="hljs-string">&#x27;1024px&#x27;</span> CSS/逻辑尺寸<br><span class="hljs-selector-tag">canvas</span><span class="hljs-selector-class">.style</span><span class="hljs-selector-class">.height</span> = <span class="hljs-string">&#x27;768px&#x27;</span> CSS/逻辑尺寸<br></code></pre></td></tr></table></figure>
+<p>WebGL 实际渲染分辨率是 2048×1536，但显示大小是 1024×768，所以在 Retina 屏幕上看起来更清晰。</p>
+<hr>
+<h2 id="第9步：Shader-中的实际执行"><a href="#第9步：Shader-中的实际执行" class="headerlink" title="第9步：Shader 中的实际执行"></a>第9步：Shader 中的实际执行</h2><h3 id="CPU-端预计算"><a href="#CPU-端预计算" class="headerlink" title="CPU 端预计算"></a>CPU 端预计算</h3><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs glsl">posMatrix = viewProjMatrix × tileMatrix<br><br><span class="hljs-comment">// 这个矩阵包含了所有变换：</span><br><span class="hljs-comment">// 瓦片定位 + 缩放 + 旋转 + 透视</span><br></code></pre></td></tr></table></figure>
+<h3 id="GPU-端执行（每个顶点）"><a href="#GPU-端执行（每个顶点）" class="headerlink" title="GPU 端执行（每个顶点）"></a>GPU 端执行（每个顶点）</h3><figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs glsl"><span class="hljs-comment">// Vertex Shader</span><br><span class="hljs-keyword">in</span> <span class="hljs-type">vec2</span> a_pos;  <span class="hljs-comment">// 瓦片内坐标，如 (655, 4833)</span><br><br><span class="hljs-type">void</span> main() &#123;<br>    <span class="hljs-comment">// 一次矩阵乘法完成所有变换！</span><br>    <span class="hljs-built_in">gl_Position</span> = u_matrix * <span class="hljs-type">vec4</span>(a_pos, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>);<br><br>    <span class="hljs-comment">// gl_Position = (x&#x27;, y&#x27;, z&#x27;, w&#x27;)</span><br>    <span class="hljs-comment">// GPU 自动进行透视除法: pos/w</span><br>    <span class="hljs-comment">// 然后进行视口变换</span><br>&#125;<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="透视投影对像素的影响"><a href="#透视投影对像素的影响" class="headerlink" title="透视投影对像素的影响"></a>透视投影对像素的影响</h2><h3 id="世界坐标中的差距"><a href="#世界坐标中的差距" class="headerlink" title="世界坐标中的差距"></a>世界坐标中的差距</h3><p>故宫在天安门北边 240 逻辑像素</p>
+<h3 id="如果-pitch-0（无透视）"><a href="#如果-pitch-0（无透视）" class="headerlink" title="如果 pitch=0（无透视）"></a>如果 pitch=0（无透视）</h3><figure class="highlight tap"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs tap">屏幕上的差距 =<span class="hljs-number"> 240 </span>逻辑像素<br>故宫在屏幕中心上方<span class="hljs-number"> 240 </span>像素处<br></code></pre></td></tr></table></figure>
+<h3 id="但-pitch-45°（有透视）"><a href="#但-pitch-45°（有透视）" class="headerlink" title="但 pitch=45°（有透视）"></a>但 pitch=45°（有透视）</h3><figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs gcode">屏幕上的差距 &lt; <span class="hljs-number">240</span> 逻辑像素 <span class="hljs-comment">(假设约 180 像素)</span><br>因为故宫在<span class="hljs-string">&quot;远处&quot;</span>，被透视缩小了<br></code></pre></td></tr></table></figure>
+<h3 id="同一个瓦片在屏幕上的显示大小"><a href="#同一个瓦片在屏幕上的显示大小" class="headerlink" title="同一个瓦片在屏幕上的显示大小"></a>同一个瓦片在屏幕上的显示大小</h3><p>理论大小（zoom=10.3）：631×631 逻辑像素</p>
+<p>实际显示（pitch=45°）：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>显示大小</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>屏幕底部（近处）</td>
+<td>约 900×900 像素</td>
+<td>透视放大</td>
+</tr>
+<tr>
+<td>屏幕中央</td>
+<td>约 631×631 像素</td>
+<td>接近标准</td>
+</tr>
+<tr>
+<td>屏幕上方（远处）</td>
+<td>约 400×400 像素</td>
+<td>透视缩小</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>同一个瓦片，近处和远处显示大小差 2 倍以上！</p>
+<hr>
+<h2 id="完整流程总图"><a href="#完整流程总图" class="headerlink" title="完整流程总图"></a>完整流程总图</h2><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs stylus">┌────────────────┐<br>│   经纬度        │  故宫: (<span class="hljs-number">116.397</span>°E, <span class="hljs-number">39.916</span>°N)<br>└───────┬────────┘<br>        │ <span class="hljs-built_in">mercatorXfromLng</span>(), <span class="hljs-built_in">mercatorYfromLat</span>()<br>        ▼<br>┌────────────────┐<br>│  Mercator坐标   │  (<span class="hljs-number">0.82332</span>, <span class="hljs-number">0.3746</span>) 范围<span class="hljs-selector-attr">[0,1]</span>²<br>└───────┬────────┘<br>        │ × worldSize (= tileSize × <span class="hljs-number">2</span>^zoom = <span class="hljs-number">512</span> × <span class="hljs-number">2</span>^<span class="hljs-number">10.3</span>)<br>        ▼<br>┌────────────────┐<br>│   世界坐标      │  (<span class="hljs-number">531</span>,<span class="hljs-number">883</span>, <span class="hljs-number">242</span>,<span class="hljs-number">045</span>) 范围<span class="hljs-selector-attr">[0, 646,092]</span>²<br>└───────┬────────┘<br>        │<br>        │  数据存储时：转换为瓦片内坐标<br>        ▼<br>┌────────────────┐<br>│   瓦片内坐标    │  (<span class="hljs-number">655</span>, <span class="hljs-number">4833</span>) 范围<span class="hljs-selector-attr">[0, 8192]</span>²<br>│                │  存储在 GPU 顶点缓冲区 (Int16)<br>└───────┬────────┘<br>        │<br>        │  ═══════════════════════════════════════════════════════<br>        │  ║ GPU Shader: gl_Position = posMatrix × <span class="hljs-built_in">vec4</span>(a_pos,<span class="hljs-number">0</span>,<span class="hljs-number">1</span>) ║<br>        │  ═══════════════════════════════════════════════════════<br>        │<br>        │  posMatrix = ViewProjMatrix × TileMatrix<br>        │            = (透视+旋转+平移) × (瓦片定位+缩放)<br>        ▼<br>┌────────────────┐<br>│   裁剪空间      │  (x<span class="hljs-string">&#x27;, y&#x27;</span>, z<span class="hljs-string">&#x27;, w&#x27;</span>)   w ≠ <span class="hljs-number">1</span>（透视！）<br>└───────┬────────┘<br>        │ GPU 自动：透视除法 (÷w) + 视口变换<br>        ▼<br>┌────────────────┐<br>│  屏幕逻辑像素   │  (<span class="hljs-number">527</span>, <span class="hljs-number">340</span>) 范围<span class="hljs-selector-attr">[0, 1024]</span>×<span class="hljs-selector-attr">[0, 768]</span><br>└───────┬────────┘<br>        │ × devicePixelRatio (=<span class="hljs-number">2.0</span>)<br>        ▼<br>┌────────────────┐<br>│  屏幕物理像素   │  (<span class="hljs-number">1054</span>, <span class="hljs-number">680</span>) 范围<span class="hljs-selector-attr">[0, 2048]</span>×<span class="hljs-selector-attr">[0, 1536]</span><br>│                │  实际在屏幕上绘制的位置<br>└────────────────┘<br></code></pre></td></tr></table></figure>
+<hr>
+<h2 id="关键概念总结"><a href="#关键概念总结" class="headerlink" title="关键概念总结"></a>关键概念总结</h2><h3 id="tileSize-512"><a href="#tileSize-512" class="headerlink" title="tileSize = 512"></a>tileSize = 512</h3><ul>
+<li>是”逻辑像素”，不是物理像素</li>
+<li>是 zoom=0 时世界的逻辑大小</li>
+<li>是计算 worldSize 的基准</li>
+<li><strong>不是瓦片在屏幕上的实际显示大小！</strong></li>
+</ul>
+<h3 id="zoom-vs-tileZ"><a href="#zoom-vs-tileZ" class="headerlink" title="zoom vs tileZ"></a>zoom vs tileZ</h3><ul>
+<li>zoom=10.3 是用户看到的缩放级别（小数）</li>
+<li>tileZ=10 是加载的瓦片层级（整数）</li>
+<li>zoom-tileZ=0.3 使瓦片放大显示（631px vs 512px）</li>
+</ul>
+<h3 id="透视投影的影响"><a href="#透视投影的影响" class="headerlink" title="透视投影的影响"></a>透视投影的影响</h3><ul>
+<li>近处物体显得大，远处物体显得小</li>
+<li>同一经纬度差，在屏幕上的像素差取决于距离</li>
+<li>tileSize 与最终屏幕大小不是简单对应关系</li>
+</ul>
+<hr>
+<h2 id="坐标空间对照表"><a href="#坐标空间对照表" class="headerlink" title="坐标空间对照表"></a>坐标空间对照表</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>坐标空间</th>
+<th>范围</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>经纬度</td>
+<td>[-180,180] × [-90,90]</td>
+<td>原始地理坐标</td>
+</tr>
+<tr>
+<td>Mercator</td>
+<td>[0, 1]²</td>
+<td>Web Mercator投影后的归一化坐标</td>
+</tr>
+<tr>
+<td>瓦片内坐标</td>
+<td>[0, 8192]²</td>
+<td>单个瓦片内的局部坐标 (EXTENT)</td>
+</tr>
+<tr>
+<td>世界坐标</td>
+<td>[0, worldSize]²</td>
+<td>整个地图的逻辑像素坐标</td>
+</tr>
+<tr>
+<td>裁剪空间</td>
+<td>[-1, 1]³</td>
+<td>OpenGL标准裁剪空间（齐次坐标）</td>
+</tr>
+<tr>
+<td>屏幕逻辑像素</td>
+<td>[0, width] × [0, height]</td>
+<td>CSS像素位置</td>
+</tr>
+<tr>
+<td>屏幕物理像素</td>
+<td>[0, width×DPR] × [0, height×DPR]</td>
+<td>实际渲染像素位置</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h2 id="相关代码位置"><a href="#相关代码位置" class="headerlink" title="相关代码位置"></a>相关代码位置</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th>文件位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mercator投影</td>
+<td><code>src/geo/mercator_coordinate.ts</code></td>
+</tr>
+<tr>
+<td>TileMatrix计算</td>
+<td><code>src/geo/projection/mercator_utils.ts</code></td>
+</tr>
+<tr>
+<td>ViewProjMatrix计算</td>
+<td><code>src/geo/projection/mercator_transform.ts</code></td>
+</tr>
+<tr>
+<td>Transform基础</td>
+<td><code>src/geo/transform_helper.ts</code></td>
+</tr>
+<tr>
+<td>瓦片坐标常量</td>
+<td><code>src/data/extent.ts</code></td>
+</tr>
+<tr>
+<td>几何数据加载</td>
+<td><code>src/data/load_geometry.ts</code></td>
+</tr>
+<tr>
+<td>顶点着色器</td>
+<td><code>src/shaders/_projection_mercator.vertex.glsl</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E5%9C%B0%E5%9B%BE/" class="category-chain-item">地图</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/%E5%9C%B0%E5%9B%BE/" class="print-no-link">#地图</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MapLibre GL JS 完整坐标变换流程详解</div>
+      <div>https://fuhongcui.github.io/posts/722913b1/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>WhiteGive</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年12月8日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/c7467172/" title="perf采样火焰图">
+                        <span class="hidden-mobile">perf采样火焰图</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'fuhongcui/fuhongcui.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
