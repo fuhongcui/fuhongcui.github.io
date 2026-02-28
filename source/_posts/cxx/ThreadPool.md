@@ -117,7 +117,6 @@ private:
 #include "ThreadPool.h"
 #include <thread>
 
-
 unsigned int WorkTask(unsigned int value)
 {
     unsigned int totalValue = 0;
@@ -132,13 +131,22 @@ int main()
 {
     ThreadPool threadPool(10);
     constexpr int taskACount = 10000;
+
+    std::vector<std::future<unsigned int>> taskRet;
     for(unsigned i = 0; i < taskACount; ++i)
     {
-        threadPool.CommitTask(WorkTask, 100000);
+        auto ret = threadPool.CommitTask(WorkTask, 100000);
+        taskRet.emplace_back(std::move(ret));
     }
     threadPool.Pause();
     std::this_thread::sleep_for(std::chrono::seconds(5));
     threadPool.Resume();
+
+    for(auto&& taskRetValue : taskRet)
+    {
+        std::cout << taskRetValue.get() << std::endl;
+    }
     return 0;
 }
+
 ```
