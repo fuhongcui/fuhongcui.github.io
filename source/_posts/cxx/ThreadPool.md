@@ -183,8 +183,8 @@ unsigned int WorkTask(unsigned int value)
 
 int main()
 {
-    ThreadPool threadPool(10);
-    constexpr int taskACount = 10000;
+    ThreadPool threadPool;
+    constexpr int taskACount = 50000;
 
     std::vector<std::future<unsigned int>> taskRet;
     for(unsigned i = 0; i < taskACount; ++i)
@@ -192,21 +192,13 @@ int main()
         auto ret = threadPool.CommitTask(WorkTask, 9999999);
         taskRet.emplace_back(std::move(ret));
     }
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     threadPool.Start();
-    // threadPool.Pause();
-    // threadPool.Resume();
-    auto taskCount = threadPool.GetTaskCount();
-    while(taskCount > 0)
-    {
-        taskCount = threadPool.GetTaskCount();
-        std::cout << "Task count: " << taskCount << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-    for(auto&& taskRetValue : taskRet)
-    {
-        (void)taskRetValue.get();
-    }
     threadPool.Stop();
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
     return 0;
 }
+
 ```
