@@ -11,35 +11,33 @@ date: 2026-02-28 16:34:37
 #### 实现代码
 ```c++
 #pragma once
-#include <atomic>
-#include <condition_variable>
+
 #include <future>
-#include <iostream>
-#include <syncstream>
 #include <mutex>
+#include <condition_variable>
 #include <queue>
 
 class ThreadPool
 {
     using Task = std::packaged_task<void()>;
 public:
-    ThreadPool(unsigned int treadCount)
+    ThreadPool(unsigned int threadCount)
     {
-        for(unsigned int i = 0; i < treadCount; ++i)
+        for(unsigned int i = 0; i < threadCount; ++i)
         {
-            const std::string threadName = "WorkThread [" + std::to_string(i) + "]";
-            std::thread thread([this, threadName]() {
+            std::string threadName = "WorkThread [" + std::to_string(i) + "]";
+            std::thread thread([this, threadName = std::move(threadName)]() {
                 pthread_setname_np(pthread_self(), threadName.c_str());
-                std::osyncstream(std::cout) << threadName << " => Startup" << std::endl;
                 while(true)
                 {
                     Task task;
                     {
-                       std::osyncstream(std::cout) << threadName << " => Waitting task ..." << std::endl;
-                        std::unique_lock<std::mutex> taskLock(m_task_mutex);
-                        m_task_condition.wait(taskLock, [&]() {
+                        std::unique_lock<std::mutex> lock(m_task_mutex);
+                        m_waiting_thread_count++;
+                        m_task_cv.wait(lock, [this]() {
                             return m_stop || (!m_pause && !m_tasks.empty());
                         });
+                        m_waiting_thread_count--;
                         if(m_stop && m_tasks.empty())
                         {
                             break;
@@ -48,25 +46,28 @@ public:
                         {
                             task = std::move(m_tasks.front());
                             m_tasks.pop();
+                            m_task_count--;
                         }
                     }
                     if(task.valid())
                     {
-                        std::osyncstream(std::cout) << threadName << " => Running task ..." << std::endl;
+                        m_running_thread_count++; 
                         task();
+                        m_running_thread_count--;
                     }
                 }
-                std::osyncstream(std::cout) <<threadName << " => Exit" << std::endl;
             });
             m_threads.emplace_back(std::move(thread));
         }
-
     }
     ~ThreadPool()
     {
-        m_stop = true;
-        m_pause = false;
-        m_task_condition.notify_all();
+        {
+            std::unique_lock<std::mutex> lock(m_task_mutex);
+            m_stop = true;
+            m_pause = false;   
+        }
+        m_task_cv.notify_all();
         for(auto&& t : m_threads)
         {
             if(t.joinable())
@@ -75,16 +76,8 @@ public:
             }
         }
     }
-    void Pause()
-    {
-        m_pause = true;
-        m_task_condition.notify_all();
-    }
-    void Resume()
-    {
-        m_pause = false;
-        m_task_condition.notify_all();
-    }
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
     template<class F, class... Args>
     auto CommitTask(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>>
     {
@@ -94,28 +87,60 @@ public:
         });
         std::future<ReturnType> taskReturn = packagedTask.get_future();
         {
-            std::unique_lock<std::mutex> taskLock(m_task_mutex);
-            m_tasks.emplace([t = std::move(packagedTask)]() mutable {
-                t();
+            std::unique_lock<std::mutex> lock(m_task_mutex);
+            m_tasks.emplace([task = std::move(packagedTask)]() mutable {
+                task();
             });
+            m_task_count++;
         }
-        m_task_condition.notify_one();
+        m_task_cv.notify_one();
         return taskReturn;
+    }
+    void Pause()
+    {
+        {
+            std::unique_lock<std::mutex> lock(m_task_mutex);
+            m_pause = true;
+        }
+        m_task_cv.notify_all();
+    }
+    void Resume()
+    {
+        {
+            std::unique_lock<std::mutex> lock(m_task_mutex);
+            m_pause = false;
+        }
+        m_task_cv.notify_all();
+    }
+    unsigned int GetRunningThreadCount() const
+    {
+        return m_running_thread_count.load();
+    }
+    unsigned int GetWaitingThreadCount() const
+    {
+        return m_waiting_thread_count.load();
+    }
+    unsigned int GetTaskCount() const
+    {
+        return m_task_count.load();
     }
 private:
     std::vector<std::thread>    m_threads;
-    std::atomic<bool>           m_stop = false;
-    std::atomic<bool>           m_pause = false;
     std::mutex                  m_task_mutex;
-    std::condition_variable     m_task_condition;
+    std::condition_variable     m_task_cv;
     std::queue<Task>            m_tasks;
+    bool                        m_stop = false;
+    bool                        m_pause = false;
+    std::atomic<unsigned int>   m_running_thread_count = 0;
+    std::atomic<unsigned int>   m_waiting_thread_count = 0;
+    std::atomic<unsigned int>   m_task_count = 0;
 };
 ```
 
 #### 使用示例
 ```c++
 #include "ThreadPool.h"
-#include <thread>
+#include <iostream>
 
 unsigned int WorkTask(unsigned int value)
 {
@@ -135,16 +160,21 @@ int main()
     std::vector<std::future<unsigned int>> taskRet;
     for(unsigned i = 0; i < taskACount; ++i)
     {
-        auto ret = threadPool.CommitTask(WorkTask, 100000);
+        auto ret = threadPool.CommitTask(WorkTask, 9999999);
         taskRet.emplace_back(std::move(ret));
     }
-    threadPool.Pause();
-    std::this_thread::sleep_for(std::chrono::seconds(5));
-    threadPool.Resume();
-
+    // threadPool.Pause();
+    // threadPool.Resume();
+    while(true)
+    {
+        std::cout << "Running thread count: " << threadPool.GetRunningThreadCount() << std::endl;
+        std::cout << "Waiting thread count: " << threadPool.GetWaitingThreadCount() << std::endl;
+        std::cout << "Task count: " << threadPool.GetTaskCount() << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
     for(auto&& taskRetValue : taskRet)
     {
-        std::cout << taskRetValue.get() << std::endl;
+        (void)taskRetValue.get();
     }
     return 0;
 }
