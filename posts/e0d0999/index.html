@@ -1,0 +1,777 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="WhiteGive">
+  <meta name="keywords" content="记录 分享">
+  
+    <meta name="description" content="C++ 中关于 匿名空间 (namespace &amp;#123;&amp;#125;)、静态 (static) 和 内联 (inline) 在全局&#x2F;文件作用域下的详细对比表格及深度解析 对比表格    特性 匿名命名空间 (namespace &amp;#123;&amp;#125;) 静态 (static) 内联 (inline)     链接属性 内部链接 (Internal Linkage) 内部链接 (Interna">
+<meta property="og:type" content="article">
+<meta property="og:title" content="C++ 中关于 **匿名空间 (&#96;namespace {}&#96;)**、**静态 (&#96;static&#96;)** 和 **内联 (&#96;inline&#96;)** 在全局&#x2F;文件作用域下的详细对比表格及深度解析">
+<meta property="og:url" content="https://fuhongcui.github.io/posts/e0d0999/">
+<meta property="og:site_name" content="WhiteGive">
+<meta property="og:description" content="C++ 中关于 匿名空间 (namespace &amp;#123;&amp;#125;)、静态 (static) 和 内联 (inline) 在全局&#x2F;文件作用域下的详细对比表格及深度解析 对比表格    特性 匿名命名空间 (namespace &amp;#123;&amp;#125;) 静态 (static) 内联 (inline)     链接属性 内部链接 (Internal Linkage) 内部链接 (Interna">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-09T05:15:46.166Z">
+<meta property="article:modified_time" content="2026-03-09T05:18:36.650Z">
+<meta property="article:author" content="WhiteGive">
+<meta property="article:tag" content="c++namespace">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>C++ 中关于 **匿名空间 (`namespace {}`)**、**静态 (`static`)** 和 **内联 (`inline`)** 在全局/文件作用域下的详细对比表格及深度解析 - WhiteGive</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"fuhongcui.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>WhiteGive</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/resourse/img/back.jpg') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="C++ 中关于 **匿名空间 (`namespace {}`)**、**静态 (`static`)** 和 **内联 (`inline`)** 在全局/文件作用域下的详细对比表格及深度解析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2026-03-09 13:15" pubdate>
+          2026年3月9日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          933 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          8 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">C++ 中关于 **匿名空间 (`namespace {}`)**、**静态 (`static`)** 和 **内联 (`inline`)** 在全局/文件作用域下的详细对比表格及深度解析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <p>C++ 中关于 <strong>匿名空间 (<code>namespace &#123;&#125;</code>)</strong>、<strong>静态 (<code>static</code>)</strong> 和 <strong>内联 (<code>inline</code>)</strong> 在全局/文件作用域下的详细对比表格及深度解析</p>
+<h3 id="对比表格"><a href="#对比表格" class="headerlink" title="对比表格"></a>对比表格</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th style="text-align:left">特性</th>
+<th style="text-align:left">匿名命名空间 (<code>namespace &#123;&#125;</code>)</th>
+<th style="text-align:left">静态 (<code>static</code>)</th>
+<th style="text-align:left">内联 (<code>inline</code>)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>链接属性</strong></td>
+<td style="text-align:left"><strong>内部链接</strong> (Internal Linkage)</td>
+<td style="text-align:left"><strong>内部链接</strong> (Internal Linkage)</td>
+<td style="text-align:left"><strong>外部链接</strong> (External Linkage)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>可见性</strong></td>
+<td style="text-align:left">仅限当前编译单元 (.cpp)</td>
+<td style="text-align:left">仅限当前编译单元 (.cpp)</td>
+<td style="text-align:left">全局可见 (跨多个 .cpp)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>修饰对象</strong></td>
+<td style="text-align:left">函数、变量、<strong>类、结构、枚举、typedef</strong></td>
+<td style="text-align:left">仅限函数、变量</td>
+<td style="text-align:left">仅限函数、变量 (C++17 引入 inline 变量)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>头文件使用</strong></td>
+<td style="text-align:left"><strong>禁止建议</strong>：会在每个单位拷贝一份，造成冗余和逻辑错误</td>
+<td style="text-align:left"><strong>不建议</strong>：每个单位拥有独立拷贝，易产生混淆</td>
+<td style="text-align:left"><strong>推荐</strong>：用于在头文件定义函数/变量并允许被多处包含</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>ODR (唯一定义原则)</strong></td>
+<td style="text-align:left">每个单元独立，不冲突</td>
+<td style="text-align:left">每个单元独立，不冲突</td>
+<td style="text-align:left">允许在多个单元定义，但<strong>定义必须完全一致</strong></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>主要目的</strong></td>
+<td style="text-align:left">隐藏当前文件的实现细节 (含类型声明)</td>
+<td style="text-align:left">隐藏当前文件的变量或函数 (C)</td>
+<td style="text-align:left">允许在头文件通过定义而非声明来共享代码</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>现代规范</strong></td>
+<td style="text-align:left">C++ 风格：推荐用于 CPP 文件</td>
+<td style="text-align:left">C 风格：对于函数/变量仍有效，但功能局限</td>
+<td style="text-align:left">现代 C++：用于头文件中的常量或工具函数</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+<h3 id="深度解析"><a href="#深度解析" class="headerlink" title="深度解析"></a>深度解析</h3><h4 id="1-匿名命名空间-namespace"><a href="#1-匿名命名空间-namespace" class="headerlink" title="1. 匿名命名空间 (namespace {})"></a>1. 匿名命名空间 (<code>namespace &#123;&#125;</code>)</h4><ul>
+<li><strong>本质</strong>：编译器为该空间生成一个唯一的、无法在外部引用的名字。</li>
+<li><strong>核心优势</strong>：它是唯一能将<strong>类型定义</strong>（如 <code>class</code>, <code>struct</code>）限制在当前文件的方法。</li>
+<li><strong>使用场景</strong>：在一个 <code>.cpp</code> 文件中定义一些辅助用的类、结构体或工具函数，不希望它们污染全局命名空间，也不希望其他文件能访问。</li>
+</ul>
+<h4 id="2-静态-static"><a href="#2-静态-static" class="headerlink" title="2. 静态 (static)"></a>2. 静态 (<code>static</code>)</h4><ul>
+<li><strong>本质</strong>：修饰全局变量或函数时，告诉链接器“不要把这个符号暴露给其他文件”。</li>
+<li><strong>局限性</strong>：它不能修饰类定义。如果你在两个文件中都定义了 <code>static class A &#123;&#125;;</code>，由于 <code>static</code> 只能修饰变量，这实际上并不合规（类声明本身不具备链接属性，它是通过匿名空间实现可见性隔离的）。</li>
+<li><strong>现状</strong>：在现代 C++ 中，<code>static</code> 更多用于类成员（静态成员）或函数内的静态变量，用于限定链接属性的功能逐渐被匿名空间取代。</li>
+</ul>
+<h4 id="3-内联-inline"><a href="#3-内联-inline" class="headerlink" title="3. 内联 (inline)"></a>3. 内联 (<code>inline</code>)</h4><ul>
+<li><strong>本质</strong>：它<strong>不是</strong>为了隐藏，而是为了<strong>共享</strong>。</li>
+<li><strong>原理</strong>：<code>inline</code> 会告诉链接器：“如果看到多个同名的定义，请把它们看作同一个，不要报错。”</li>
+<li><strong>变量支持 (C++17)</strong>：<ul>
+<li>在 C++17 之前，头文件定义全局变量必须用 <code>extern</code> + <code>.cpp</code> 定义。</li>
+<li>现在可以用 <code>inline const int MAX_SIZE = 100;</code> 直接写在头文件中，所有包含该头的 <code>.cpp</code> 都会指向<strong>同一个</strong>内存地址。</li>
+</ul>
+</li>
+<li><strong>对比关键</strong>：<code>static</code> 在头文件中会导致每个文件有一份拷贝（内存浪费，地址不同）；<code>inline</code> 在头文件中保证所有文件共用一个（节省内存，物理唯一）。</li>
+</ul>
+<hr>
+<h3 id="总结：我该选哪个？"><a href="#总结：我该选哪个？" class="headerlink" title="总结：我该选哪个？"></a>总结：我该选哪个？</h3><ol>
+<li><p><strong>如果你在 <code>.cpp</code> 中</strong>，想写一些只有这个文件能用的函数或类：</p>
+<ul>
+<li>使用 <strong>匿名命名空间</strong>。</li>
+</ul>
+</li>
+<li><p><strong>如果你在 <code>.h</code> 中</strong>，想定义一个全局常量或小函数：</p>
+<ul>
+<li>使用 <strong><code>inline</code></strong>（如果是常量，用 <code>constexpr</code> 更好，它隐含了 <code>inline</code>）。</li>
+</ul>
+</li>
+<li><p><strong>如果你在 <code>.h</code> 中</strong>，想声明一个变量供全工程共享：</p>
+<ul>
+<li>使用 <strong><code>extern</code></strong>，然后在某个 <code>.cpp</code> 中定义它。</li>
+</ul>
+</li>
+<li><p><strong>如果你在写类定义</strong>：</p>
+<ul>
+<li>正常写在命名空间内即可；如果是辅助类，写在 <code>.cpp</code> 的 <strong>匿名命名空间</strong> 里。</li>
+</ul>
+</li>
+</ol>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/cxx/" class="category-chain-item">cxx</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/c-namespace/" class="print-no-link">#c++namespace</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>C++ 中关于 **匿名空间 (`namespace {}`)**、**静态 (`static`)** 和 **内联 (`inline`)** 在全局/文件作用域下的详细对比表格及深度解析</div>
+      <div>https://fuhongcui.github.io/posts/e0d0999/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>WhiteGive</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2026年3月9日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/posts/60ebd1f7/" title="一个简单的 C++ 线程池">
+                        <span class="hidden-mobile">一个简单的 C++ 线程池</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'fuhongcui/fuhongcui.github.io');
+      s.setAttribute('issue-term', 'pathname');
+      
+      s.setAttribute('label', 'utterances');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
